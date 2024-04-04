@@ -1,0 +1,44 @@
+import threading
+import time
+import random
+
+class RedEnvelope:
+    def __init__(self, total_amount, num_packets):
+        self.total_amount = total_amount
+        self.num_packets = num_packets
+        self.packets = [total_amount / num_packets] * num_packets
+        self.lock = threading.Lock()
+
+    def grab_packet(self, user_id):
+        with self.lock:
+            if self.num_packets > 0:
+                index = random.randint(0, self.num_packets - 1)
+                amount = self.packets.pop(index)
+                self.num_packets -= 1
+                print(f"User {user_id} grabbed {amount:.2f} yuan from the red envelope!")
+            else:
+                print(f"Red envelope is empty! User {user_id} failed to grab.")
+
+def try_to_grab_packet(red_envelope, user_id):
+    red_envelope.grab_packet(user_id)
+
+def main():
+    total_amount = 100
+    num_packets = 10
+    red_envelope = RedEnvelope(total_amount, num_packets)
+
+    num_users = 20
+    threads = []
+
+    for i in range(num_users):
+        thread = threading.Thread(target=try_to_grab_packet, args=(red_envelope, i+1))
+        threads.append(thread)
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
+    print("All threads have finished.")
+
+if __name__ == "__main__":
+    main()
